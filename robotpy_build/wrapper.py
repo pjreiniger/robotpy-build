@@ -45,13 +45,14 @@ class Wrapper:
     # -> should we change this based on what flags the compiler supports?
     _cpp_version = "__cplusplus 201703L"
 
-    def __init__(self, package_name, cfg: WrapperConfig, setup):
+    def __init__(self, package_name, cfg: WrapperConfig, setup, output_root, incdir=None):
         self.package_name = package_name
         self.cfg = cfg
 
         self.setup_root = setup.root
         self.pypi_package = setup.pypi_package
         self.root = join(setup.root, *package_name.split("."))
+        self.output_root = join(output_root, *(package_name.replace("src.main.native", "")).split("."))
 
         # must match PkgCfg.name
         self.name = cfg.name
@@ -74,7 +75,7 @@ class Wrapper:
             libinit_py = f"_init{extname}.py"
             self.libinit_import = f"{package_name}._init{extname}"
 
-        self.libinit_import_py = join(self.root, libinit_py)
+        self.libinit_import_py = join(self.output_root, libinit_py)
 
         self.platform = setup.platform
         self.pkgcfg = setup.pkgcfg
@@ -125,8 +126,8 @@ class Wrapper:
         ep = setup_kwargs.setdefault("entry_points", {})
         ep.setdefault("robotpybuild", []).append(entry_point)
 
-        self.incdir = join(self.root, "include")
-        self.rpy_incdir = join(self.root, "rpy-include")
+        self.incdir = incdir if incdir else join(self.root, "include")
+        self.rpy_incdir = self.output_root
 
         self.dev_config = get_dev_config(self.name)
 
@@ -329,7 +330,7 @@ class Wrapper:
         return casters
 
     def on_build_dl(self, cache: str, srcdir: str):
-        pkgcfgpy = join(self.root, "pkgcfg.py")
+        pkgcfgpy = join(self.output_root, "pkgcfg.py")
         srcdir = join(srcdir, self.name)
 
         try:
@@ -498,6 +499,11 @@ class Wrapper:
 
         init = init.replace("##IMPORTS##", imports)
 
+        output_dirname = os.path.dirname(self.libinit_import_py)
+        if not os.path.exists(output_dirname):
+            os.makedirs(output_dirname)
+
+        print(f"Writing libinit_import_py to {self.libinit_import_py}")
         with open(self.libinit_import_py, "w") as fp:
             fp.write(init)
 
@@ -578,6 +584,7 @@ class Wrapper:
             """
             )
 
+        print(f"Writing pkgcfg to {fname}")
         with open(fname, "w") as fp:
             fp.write(pkgcfg)
 
@@ -663,7 +670,12 @@ class Wrapper:
                 import pprint
 
                 pprint.pprint(generation_search_path)
-                raise ValueError("could not find " + header)
+                
+                err_txt = ""
+                for path in generation_search_path:
+                    header_path = join(path, header)
+                    err_txt += "  - " + header_path + "\n"
+                raise ValueError("could not find " + header + "\n" + err_txt)
 
             if report_only:
                 templates = []
