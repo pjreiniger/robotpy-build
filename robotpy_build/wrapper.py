@@ -377,9 +377,9 @@ class Wrapper:
         add_incdir = False
 
         # Remove downloaded/generated artifacts first
-        shutil.rmtree(libdir, ignore_errors=True)
-        shutil.rmtree(incdir, ignore_errors=True)
-        shutil.rmtree(srcdir, ignore_errors=True)
+        # shutil.rmtree(libdir, ignore_errors=True)
+        # shutil.rmtree(incdir, ignore_errors=True)
+        # shutil.rmtree(srcdir, ignore_errors=True)
 
         dlopen_libnames = self.get_dlopen_library_names()
         libnames_full = []
@@ -401,7 +401,7 @@ class Wrapper:
             if dl.libs or dl.dlopenlibs:
                 add_libdir = True
                 extract_names = []
-                os.makedirs(libdir)
+                # os.makedirs(libdir)
 
                 libext = dl.libexts.get(self.platform.libext, self.platform.libext)
                 linkext = dl.linkexts.get(self.platform.linkext, self.platform.linkext)
@@ -436,7 +436,7 @@ class Wrapper:
                 to[dl.incdir] = self.incdir
                 add_incdir = True
 
-            download_and_extract_zip(dl.url, to, cache)
+            # download_and_extract_zip(dl.url, to, cache)
 
             if dl.header_patches:
                 self._apply_patches(dl.header_patches, incdir)
@@ -475,22 +475,22 @@ class Wrapper:
             init += "from ctypes import cdll\n\n"
 
             for libname in libnames:
-                init += "try:\n"
+                # init += "try:\n"
                 init += (
-                    f'    _lib = cdll.LoadLibrary(join(_root, "lib", "{libname}"))\n'
+                    f'import _{libname[3:-3]}\n'
                 )
-                init += "except FileNotFoundError:\n"
-                init += f'    if not exists(join(_root, "lib", "{libname}")):\n'
-                init += f'        raise FileNotFoundError("{libname} was not found on your system. Is this package correctly installed?")\n'
-                if self.platform.os == "windows":
-                    init += f'    raise Exception("{libname} could not be loaded. Do you have Visual Studio C++ Redistributible 2019 installed?")\n\n'
-                else:
-                    init += f'    raise FileNotFoundError("{libname} could not be loaded. There is a missing dependency.")\n\n'
+                # init += "except FileNotFoundError:\n"
+                # init += f'    if not exists(join(_root, "lib", "{libname}")):\n'
+                # init += f'        raise FileNotFoundError("{libname} was not found on your system. Is this package correctly installed?")\n'
+                # if self.platform.os == "windows":
+                #     init += f'    raise Exception("{libname} could not be loaded. Do you have Visual Studio C++ Redistributible 2019 installed?")\n\n'
+                # else:
+                #     init += f'    raise FileNotFoundError("{libname} could not be loaded. There is a missing dependency.")\n\n'
         imports = []
         for dep in self.cfg.depends:
             pkg = self.pkgcfg.get_pkg(dep)
             if pkg.libinit_import:
-                imports.append(pkg.libinit_import)
+                imports.append(pkg.libinit_import.replace(".src.main.native", ""))
 
         if imports:
             imports = "# runtime dependencies\nimport " + "\nimport ".join(imports)
