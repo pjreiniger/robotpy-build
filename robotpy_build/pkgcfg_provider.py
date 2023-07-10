@@ -27,16 +27,20 @@ class PkgCfg:
     Contains information about an installed package that uses robotpy-build
     """
 
-    def __init__(self, entry_point):
-        try:
-            self.module = entry_point.load()
-        except Exception as e:
+    def __init__(self, entry_point, override_name=None):
+        from types import ModuleType
+        if isinstance(entry_point, ModuleType):
+            self.module = entry_point
+            self.name = override_name
+        else:
             try:
-                self.module = _hacky_entrypoint_loader(entry_point.module_name)
-            except Exception:
-                raise e
-
-        self.name = entry_point.name
+                self.module = entry_point.load()
+            except Exception as e:
+                try:
+                    self.module = _hacky_entrypoint_loader(entry_point.module_name)
+                except Exception:
+                    raise e
+            self.name = entry_point.name
 
         # could deduce this, but this is probably fine
         self.libinit_import = getattr(self.module, "libinit_import", None)
