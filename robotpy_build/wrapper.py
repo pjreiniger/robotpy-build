@@ -142,7 +142,13 @@ class Wrapper:
         ep = setup_kwargs.setdefault("entry_points", {})
         ep.setdefault("robotpybuild", []).append(entry_point)
 
-        self.incdir = join(self.root, "include")
+        xxxx = self.package_name 
+        xxxx = xxxx.split(".")[0]
+        xxxx = xxxx.split("_")[0]
+        print(package_name, self.name, self.cfg.name, xxxx)
+        # if self.name != "wpiutil":
+        #     raise
+        self.incdir = join(xxxx, "src", "main", "native", "include")
         self.rpy_incdir = join(self.root, "rpy-include")
 
         self.dev_config = get_dev_config(self.name)
@@ -204,7 +210,7 @@ class Wrapper:
                 if dl.extra_includes:
                     includes += [join(self.incdir, inc) for inc in dl.extra_includes]
         for h in self.cfg.extra_includes:
-            includes.append(join(self.setup_root, normpath(h)))
+            includes.append(join(normpath(h)))
         return includes
 
     def get_library_dirs(self) -> Optional[List[str]]:
@@ -553,7 +559,14 @@ class Wrapper:
         pypi_package = {repr(self.pypi_package)}
 
         def get_include_dirs():
-            return [join(_root, "include"), join(_root, "rpy-include")##EXTRAINCLUDES##]
+            root = "/home/pjreiniger/git/allwpilib/{self.package_name.split('.')[0]}"
+            output = [join(root, "src/main/native/include"), join(root, "src/main/python/generated/rpy-include/{self.package_name}/rpy-include")##EXTRAINCLUDES##]
+            import os
+            for d in output:
+                if not os.path.exists(d):
+                    print("----------------------------------------" + d + " does not exist!")
+            return output
+            # return [join(_root, "include"), join(_root, "rpy-include")##EXTRAINCLUDES##]
 
         def get_library_dirs():
             return {library_dirs}
@@ -636,7 +649,7 @@ class Wrapper:
         per_header = False
         data_fname = self.cfg.generation_data
         if self.cfg.generation_data:
-            datapath = join(self.setup_root, normpath(self.cfg.generation_data))
+            datapath = join(normpath(self.cfg.generation_data))
             per_header = isdir(datapath)
             if not per_header:
                 data = AutowrapConfigYaml.from_file(datapath)
