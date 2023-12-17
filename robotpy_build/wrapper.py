@@ -521,6 +521,9 @@ class Wrapper:
 
         init = init.replace("##IMPORTS##", imports)
 
+        if not os.path.exists(os.path.dirname(self.libinit_import_py)):
+            os.makedirs(os.path.dirname(self.libinit_import_py))
+
         with open(self.libinit_import_py, "w") as fp:
             fp.write(init)
 
