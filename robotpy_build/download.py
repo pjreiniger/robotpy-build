@@ -59,6 +59,7 @@ def _download(url: str, dst_fname: str):
 
 
 def download_and_extract_zip(url, to, cache):
+    return
     """
     Utility method intended to be useful for downloading/extracting
     third party source zipfiles
