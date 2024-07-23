@@ -520,7 +520,12 @@ class Wrapper:
 
         init = init.replace("##IMPORTS##", imports)
 
+        pathlib.Path(self.libinit_import_py).parent.mkdir(parents=True, exist_ok=True)
+
         with open(self.libinit_import_py, "w") as fp:
+            print("*************************************")
+            print("Writing import ", self.libinit_import_py)
+            print("*************************************")
             fp.write(init)
 
         self._add_addl_data_file(self.libinit_import_py)
@@ -601,6 +606,9 @@ class Wrapper:
             )
 
         with open(fname, "w") as fp:
+            print("*************************************")
+            print("Writing pkg ", self.pkgcfg)
+            print("*************************************")
             fp.write(pkgcfg)
 
         self._add_addl_data_file(fname)
